@@ -20,7 +20,7 @@ public class Student extends Person {
         this.javaScores = javaScores;
     }
 
-    public Student(LocalDate date, String name, String gender, String idCardNumber, String studentId, String className, double chineseScores, double englishScores, double mathScores, double javaScores) {
+    public Student(String name, String gender,String studentId, String idCardNumber, LocalDate date,  String className, double chineseScores, double englishScores, double mathScores, double javaScores) {
         super(date, name, gender, idCardNumber);
         this.studentId = studentId;
         this.className = className;
@@ -28,6 +28,19 @@ public class Student extends Person {
         this.englishScores = englishScores;
         this.mathScores = mathScores;
         this.javaScores = javaScores;
+    }
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "studentId='" + studentId + '\'' +
+                ", className='" + className + '\'' +
+                ", chineseScores=" + chineseScores +
+                ", englishScores=" + englishScores +
+                ", mathScores=" + mathScores +
+                ", javaScores=" + javaScores +
+                ", date=" + date +
+                '}';
     }
 
     public String getStudentId() {

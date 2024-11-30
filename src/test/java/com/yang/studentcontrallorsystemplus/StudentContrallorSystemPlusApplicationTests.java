@@ -14,11 +14,11 @@ class StudentContrallorSystemPlusApplicationTests {
 
 
 	@Resource
-	StudentsMapper studentsMapper;
+	StudentsMapper studentsMapperText;
 
 	@Test
 	void contextLoads() {
-		List<Students> studentsList = studentsMapper.selectList(null);
+		List<Students> studentsList = studentsMapperText.selectList(null);
 		studentsList.forEach(System.out::println);
 	}
 

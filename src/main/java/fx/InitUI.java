@@ -54,6 +54,10 @@ public class InitUI extends Application {
         scene = new Scene(mainLayout, 800, 600);
         scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         
+        // 设置窗口最小尺寸
+        primaryStage.setMinWidth(800);
+        primaryStage.setMinHeight(700);
+        
         primaryStage.setScene(scene);
         primaryStage.show();
     }

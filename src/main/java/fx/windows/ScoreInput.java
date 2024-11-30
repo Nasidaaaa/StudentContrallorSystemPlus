@@ -1,20 +1,33 @@
 package fx.windows;
 
+import examples.Student;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Priority;
 
-public class ScoreInput {
+
+import java.time.LocalDate;
+
+public class ScoreInput implements StudentDataGetter {
     private TextField studentIdField;
     private TextField nameField;
     private ComboBox<String> genderCombo;
+
     private TextField classField;
     private TextField idCardField;
     private TextField[] scoreFields;
+
+
+
     private Label messageLabel;
+    // 添加出生日期相关的字段
+    private ComboBox<String> yearCombo;
+    private ComboBox<String> monthCombo;
+    private ComboBox<String> dayCombo;
 
     public VBox getContent() {
         VBox content = new VBox(20);
@@ -62,6 +75,11 @@ public class ScoreInput {
         idCardField.setPromptText("请输入18位身份证号码");
         grid.add(idCardField, 1, row++);
 
+        // 出生日期
+        grid.add(new Label("出生日期:"), 0, row);
+        HBox birthDateBox = createBirthDateBox();
+        grid.add(birthDateBox, 1, row++);
+
         // 成绩输入
         String[] subjects = {"语文", "数学", "英语", "Java课程"};
         scoreFields = new TextField[subjects.length];
@@ -81,6 +99,7 @@ public class ScoreInput {
         // 按钮容器
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setPadding(new Insets(10));
 
         Button submitButton = new Button("提交");
         submitButton.setOnAction(e -> handleSubmit());
@@ -98,10 +117,103 @@ public class ScoreInput {
         // 添加所有组件到主容器
         content.getChildren().addAll(grid, messageLabel, buttonBox);
         
+        // 设置滚动面板的增长属性
+        VBox.setVgrow(grid, Priority.ALWAYS);
+        
         // 添加输入验证
         addInputValidation();
         
         return content;
+    }
+
+    /**
+     * 创建出生日期选择框
+     * @return 包含年月日选择框的HBox
+     */
+    private HBox createBirthDateBox() {
+        HBox birthDateBox = new HBox(10);
+        
+        // 年份选择框
+        yearCombo = new ComboBox<>();
+        for (int year = 2000; year <= 2024; year++) {
+            yearCombo.getItems().add(String.valueOf(year));
+        }
+        yearCombo.setValue("2010");
+        yearCombo.setPromptText("年");
+
+        // 月份选择框
+        monthCombo = new ComboBox<>();
+        for (int month = 1; month <= 12; month++) {
+            monthCombo.getItems().add(String.format("%02d", month));
+        }
+        monthCombo.setValue("01");
+        monthCombo.setPromptText("月");
+
+        // 日期选择框
+        dayCombo = new ComboBox<>();
+        updateDayComboBox(dayCombo, 1);
+        dayCombo.setPromptText("日");
+
+        // 当月份改变时更新日期选项
+        monthCombo.setOnAction(e -> 
+            updateDayComboBox(dayCombo, Integer.parseInt(monthCombo.getValue()))
+        );
+
+        birthDateBox.getChildren().addAll(yearCombo, monthCombo, dayCombo);
+        return birthDateBox;
+    }
+
+    /**
+     * 根据年月更新日期下拉框的可选值
+     * @param dayCombo 日期下拉框
+     * @param month 月份
+     */
+    private void updateDayComboBox(ComboBox<String> dayCombo, int month) {
+        String currentDay = dayCombo.getValue();
+        dayCombo.getItems().clear();
+        
+        int maxDay = getDaysInMonth(month);
+        for (int day = 1; day <= maxDay; day++) {
+            dayCombo.getItems().add(String.format("%02d", day));
+        }
+        
+        // 如果之前选择的日期仍然有效，则保持选择
+        if (currentDay != null && dayCombo.getItems().contains(currentDay)) {
+            dayCombo.setValue(currentDay);
+        } else {
+            dayCombo.setValue("01");
+        }
+    }
+
+    /**
+     * 获取指定月份的天数
+     * @param month 月份
+     * @return 该月的天数
+     */
+    private int getDaysInMonth(int month) {
+        switch (month) {
+            case 4:
+            case 6:
+            case 9:
+            case 11:
+                return 30;
+            case 2:
+                return 28; // 简化处理，不考虑闰年
+            default:
+                return 31;
+        }
+    }
+
+    /**
+     * 获取当前选择的出生日期
+     * @return 格式化的日期字符串 (yyyy-MM-dd)
+     */
+    private String getBirthDate() {
+        return String.format("%s-%s-%s", 
+            yearCombo.getValue(),
+            monthCombo.getValue(),
+            dayCombo.getValue()
+        );
     }
 
     private void addInputValidation() {
@@ -231,7 +343,9 @@ public class ScoreInput {
         String gender = genderCombo.getValue();
         String className = classField.getText();
         String idCard = idCardField.getText();
-        int[] scores = new int[scoreFields.length];
+        double[] scores = new double[scoreFields.length];
+        String date = getBirthDate(); // 获取出生日期
+        LocalDate birthDate = LocalDate.parse(date);
 
         // 验证身份证格式
         if (!isValidIdCard(idCard)) {
@@ -242,14 +356,15 @@ public class ScoreInput {
         // 收集成绩
         for (int i = 0; i < scoreFields.length; i++) {
             try {
-                scores[i] = Integer.parseInt(scoreFields[i].getText());
+                scores[i] = Double.parseDouble(scoreFields[i].getText());
             } catch (NumberFormatException e) {
                 scores[i] = 0;
             }
         }
 
-        // TODO: 将数据保存到数据库
-        // 这里后续会添加数据库操作代码
+        //将已经检查的数据导入到studentsList
+        importData(studentId,name,gender,className,idCard,birthDate,scores[0],scores[1],scores[2],scores[3]);
+
 
         // 显示成功消息
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -260,6 +375,12 @@ public class ScoreInput {
 
         // 清空表单
         clearFields();
+    }
+
+    //将数据导入到studentsList
+    private void importData(String studentId,String name,String gender,String className,String idCard,LocalDate birthDate,double chinese,double math,double english,double java) {
+        studentsList.add(new Student(name,gender,studentId,idCard,birthDate,className,chinese,math,english,java));
+        studentsList.forEach(System.out::println);
     }
 
     // 验证所有字段
@@ -321,5 +442,8 @@ public class ScoreInput {
             scoreField.clear();
         }
         messageLabel.setText("");
+        yearCombo.setValue("2010");
+        monthCombo.setValue("01");
+        updateDayComboBox(dayCombo, 1);
     }
 }

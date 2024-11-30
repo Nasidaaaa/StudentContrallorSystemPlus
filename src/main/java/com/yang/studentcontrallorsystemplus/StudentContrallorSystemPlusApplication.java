@@ -2,6 +2,7 @@ package com.yang.studentcontrallorsystemplus;
 
 import com.sun.tools.javac.Main;
 import fx.StudentManagementApp;
+import fx.windows.ScoreInput;
 import jakarta.annotation.Resource;
 import mapper.StudentsMapper;
 import org.mybatis.spring.annotation.MapperScan;
@@ -25,10 +26,18 @@ public class StudentContrallorSystemPlusApplication {
 
 			// 启动Spring Boot应用程序
 			SpringApplication.run(Main.class, args);
-			// 启动JavaFX应用程序
+			// 启动JavaFX应用程序方法
 			launchJavaFXApp(args);
 
 	}
+
+
+
+
+
+
+
+
 
 
 
