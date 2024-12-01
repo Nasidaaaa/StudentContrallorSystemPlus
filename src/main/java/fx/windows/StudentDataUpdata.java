@@ -150,11 +150,11 @@ public class StudentDataUpdata implements StudentDataGetter {
             nameField.setText(student.getName());
             genderCombo.setValue(student.getGender());
             classField.setText(student.getClassName());
-            idCardField.setText(student.getIdCard());
-            chineseField.setText(String.valueOf(student.getChinese()));
-            mathField.setText(String.valueOf(student.getMath()));
-            englishField.setText(String.valueOf(student.getEnglish()));
-            javaField.setText(String.valueOf(student.getJava()));
+            idCardField.setText(student.getIdNumber());
+            chineseField.setText(String.valueOf(student.getChineseScore()));
+            mathField.setText(String.valueOf(student.getMathScore()));
+            englishField.setText(String.valueOf(student.getEnglishScore()));
+            javaField.setText(String.valueOf(student.getJavaScore()));
             modifyBox.setVisible(true);
         } else {
             // 删除学生
@@ -191,11 +191,11 @@ public class StudentDataUpdata implements StudentDataGetter {
             student.setName(nameField.getText().trim());
             student.setGender(genderCombo.getValue());
             student.setClassName(classField.getText().trim());
-            student.setIdCard(idCardField.getText().trim());
-            student.setChinese(Double.parseDouble(chineseField.getText().trim()));
-            student.setMath(Double.parseDouble(mathField.getText().trim()));
-            student.setEnglish(Double.parseDouble(englishField.getText().trim()));
-            student.setJava(Double.parseDouble(javaField.getText().trim()));
+            student.setIdNumber(idCardField.getText().trim());
+            student.setChineseScore(Double.parseDouble(chineseField.getText().trim()));
+            student.setMathScore(Double.parseDouble(mathField.getText().trim()));
+            student.setEnglishScore(Double.parseDouble(englishField.getText().trim()));
+            student.setJavaScore(Double.parseDouble(javaField.getText().trim()));
 
             showAlert("成功", "学生信息已更新", Alert.AlertType.INFORMATION);
             clearFields();
