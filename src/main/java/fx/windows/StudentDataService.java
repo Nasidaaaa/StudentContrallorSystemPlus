@@ -118,12 +118,18 @@ public class StudentDataService implements StudentDataGetter {
         searchButton.setOnAction(e -> handleSearch());
 
         Button resetButton = new Button("重置");
-        resetButton.setOnAction(e -> resetSearch());
+        resetButton.setOnAction(e -> handleReset());
 
         Button updateButton = new Button("更新数据");
         updateButton.setOnAction(e -> handleUpdate());
 
-        buttonBox.getChildren().addAll(searchButton, resetButton, updateButton);
+        Button addButton = new Button("添加学生");
+        addButton.setOnAction(e -> handleAddStudent());
+
+        Button deleteButton = new Button("删除学生");
+        deleteButton.setOnAction(e -> handleDeleteStudent());
+
+        buttonBox.getChildren().addAll(searchButton, resetButton, updateButton, addButton, deleteButton);
 
         // 将所有区域添加到搜索区域
         searchArea.getChildren().addAll(searchTypeBox, filterSortBox, buttonBox);
@@ -135,6 +141,8 @@ public class StudentDataService implements StudentDataGetter {
         searchButton.getStyleClass().add("button");
         resetButton.getStyleClass().add("button");
         updateButton.getStyleClass().add("button");
+        addButton.getStyleClass().add("button");
+        deleteButton.getStyleClass().add("button");
         tableView.getStyleClass().add("table-view");
 
         // 添加组件到主布局
@@ -160,8 +168,13 @@ public class StudentDataService implements StudentDataGetter {
         idColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         idColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setStudentId(event.getNewValue());
-            record.setModified(true);
+            if (validateStudentId(event.getNewValue())) {
+                record.setStudentId(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "学号格式错误", "学号必须是8位数字");
+            }
         });
 
         TableColumn<StudentRecord, String> nameColumn = new TableColumn<>("姓名");
@@ -169,8 +182,13 @@ public class StudentDataService implements StudentDataGetter {
         nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         nameColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setName(event.getNewValue());
-            record.setModified(true);
+            if (validateName(event.getNewValue())) {
+                record.setName(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "姓名格式错误", "姓名不能为空且长度不能超过20个字符");
+            }
         });
 
         TableColumn<StudentRecord, String> genderColumn = new TableColumn<>("性别");
@@ -178,8 +196,13 @@ public class StudentDataService implements StudentDataGetter {
         genderColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         genderColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setGender(event.getNewValue());
-            record.setModified(true);
+            if (validateGender(event.getNewValue())) {
+                record.setGender(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "性别格式错误", "性别只能是'男'或'女'");
+            }
         });
 
         TableColumn<StudentRecord, String> classColumn = new TableColumn<>("班级");
@@ -187,8 +210,13 @@ public class StudentDataService implements StudentDataGetter {
         classColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         classColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setClassName(event.getNewValue());
-            record.setModified(true);
+            if (validateClassName(event.getNewValue())) {
+                record.setClassName(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "班级格式错误", "班级不能为空且长度不能超过20个字符");
+            }
         });
 
         TableColumn<StudentRecord, String> idCardColumn = new TableColumn<>("身份证号");
@@ -196,8 +224,13 @@ public class StudentDataService implements StudentDataGetter {
         idCardColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         idCardColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setIdNumber(event.getNewValue());
-            record.setModified(true);
+            if (validateIdNumber(event.getNewValue())) {
+                record.setIdNumber(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "身份证号格式错误", "身份证号必须是18位");
+            }
         });
 
         TableColumn<StudentRecord, LocalDate> birthDateColumn = new TableColumn<>("出生日期");
@@ -232,8 +265,13 @@ public class StudentDataService implements StudentDataGetter {
         birthDateColumn.setCellFactory(TextFieldTableCell.forTableColumn(dateConverter));
         birthDateColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setBirthdate(event.getNewValue());
-            record.setModified(true);
+            if (validateBirthdate(event.getNewValue())) {
+                record.setBirthdate(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "出生日期格式错误", "日期格式必须为yyyy-MM-dd");
+            }
         });
 
         // 为数值列创建特殊的编辑器
@@ -258,8 +296,13 @@ public class StudentDataService implements StudentDataGetter {
         chineseColumn.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
         chineseColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setChineseScore(event.getNewValue());
-            record.setModified(true);
+            if (validateScore(event.getNewValue())) {
+                record.setChineseScore(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "成绩格式错误", "成绩必须在0-100之间");
+            }
         });
 
         TableColumn<StudentRecord, Double> mathColumn = new TableColumn<>("数学");
@@ -267,8 +310,13 @@ public class StudentDataService implements StudentDataGetter {
         mathColumn.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
         mathColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setMathScore(event.getNewValue());
-            record.setModified(true);
+            if (validateScore(event.getNewValue())) {
+                record.setMathScore(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "成绩格式错误", "成绩必须在0-100之间");
+            }
         });
 
         TableColumn<StudentRecord, Double> englishColumn = new TableColumn<>("英语");
@@ -276,8 +324,13 @@ public class StudentDataService implements StudentDataGetter {
         englishColumn.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
         englishColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setEnglishScore(event.getNewValue());
-            record.setModified(true);
+            if (validateScore(event.getNewValue())) {
+                record.setEnglishScore(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "成绩格式错误", "成绩必须在0-100之间");
+            }
         });
 
         TableColumn<StudentRecord, Double> javaColumn = new TableColumn<>("Java课程");
@@ -285,8 +338,13 @@ public class StudentDataService implements StudentDataGetter {
         javaColumn.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
         javaColumn.setOnEditCommit(event -> {
             StudentRecord record = event.getRowValue();
-            record.setJavaScore(event.getNewValue());
-            record.setModified(true);
+            if (validateScore(event.getNewValue())) {
+                record.setJavaScore(event.getNewValue());
+                record.setModified(true);
+            } else {
+                tableView.refresh();
+                showError("错误", "成绩格式错误", "成绩必须在0-100之间");
+            }
         });
 
         // 存储所有列的映射关系
@@ -311,87 +369,88 @@ public class StudentDataService implements StudentDataGetter {
 
     private void handleSearch() {
         String searchType = searchTypeCombo.getValue();
-        String searchValue = searchField.getText().trim().toLowerCase();
+        String searchValue = searchField.getText().trim();
         String subject = subjectCombo.getValue();
         String filter = filterCombo.getValue();
         String sortOrder = sortOrderCombo.getValue();
 
         // 从数据库获取数据
         List<Students> studentsList;
-        if (searchValue.isEmpty()) {
-            studentsList = studentsMapper.selectList(null);
-        } else {
-            // TODO: 根据不同的搜索类型查询数据库
-            studentsList = studentsMapper.selectList(null);
-        }
-
-        // 清空并重新加载数据
-        masterData.clear();
-        for (Students student : studentsList) {
-            masterData.add(new StudentRecord(student));
-        }
-
-        // 设置过滤条件
-        filteredData = new FilteredList<>(masterData);
-        filteredData.setPredicate(student -> {
-            // 基本信息匹配
-            boolean matchBasic = true;
-            switch (searchType) {
-                case "按学号查询":
-                    matchBasic = student.getStudentId().toLowerCase().contains(searchValue);
-                    break;
-                case "按姓名查询":
-                    matchBasic = student.getName().toLowerCase().contains(searchValue);
-                    break;
-                case "按班级查询":
-                    matchBasic = student.getClassName().toLowerCase().contains(searchValue);
-                    break;
-            }
-
-            if (!matchBasic) return false;
-
-            // 分数筛选
-            if (!"无筛选".equals(filter) && !"无".equals(subject)) {
-                double score = getScoreBySubject(student, subject);
-                switch (filter) {
-                    case "分数<60": return score < 60;
-                    case "分数>60": return score > 60;
-                    case "分数>90": return score > 90;
-                    default: return true;
+        try {
+            if (searchValue.isEmpty()) {
+                studentsList = studentsMapper.selectList(null);
+            } else {
+                // 根据不同的搜索类型查询数据库
+                switch (searchType) {
+                    case "按学号查询":
+                        Students student = studentsMapper.findByStudentId(searchValue);
+                        studentsList = student != null ? List.of(student) : List.of();
+                        break;
+                    case "按姓名查询":
+                        studentsList = studentsMapper.findByNameLike(searchValue);
+                        break;
+                    case "按班级查询":
+                        studentsList = studentsMapper.findByClassName(searchValue);
+                        break;
+                    default:
+                        studentsList = studentsMapper.selectList(null);
                 }
             }
-            return true;
-        });
 
-        // 应用排序
-        SortedList<StudentRecord> sortedData = new SortedList<>(filteredData);
-        if (!"无".equals(sortOrder) && !"无".equals(subject)) {
-            sortedData.setComparator((s1, s2) -> {
-                double score1 = getScoreBySubject(s1, subject);
-                double score2 = getScoreBySubject(s2, subject);
-                return "升序".equals(sortOrder) ? Double.compare(score1, score2) : Double.compare(score2, score1);
+            // 清空并重新加载数据
+            masterData.clear();
+            for (Students student : studentsList) {
+                masterData.add(new StudentRecord(student));
+            }
+
+            // 设置过滤条件
+            filteredData = new FilteredList<>(masterData);
+            filteredData.setPredicate(student -> {
+                // 分数筛选
+                if (!"无筛选".equals(filter) && !"无".equals(subject)) {
+                    double score = getScoreBySubject(student, subject);
+                    switch (filter) {
+                        case "分数<60": return score < 60;
+                        case "分数>60": return score > 60;
+                        case "分数>90": return score > 90;
+                        default: return true;
+                    }
+                }
+                return true;
             });
-        }
 
-        tableView.setItems(sortedData);
+            // 应用排序
+            SortedList<StudentRecord> sortedData = new SortedList<>(filteredData);
+            if (!"无".equals(sortOrder) && !"无".equals(subject)) {
+                sortedData.setComparator((s1, s2) -> {
+                    double score1 = getScoreBySubject(s1, subject);
+                    double score2 = getScoreBySubject(s2, subject);
+                    return "升序".equals(sortOrder) ? Double.compare(score1, score2) : Double.compare(score2, score1);
+                });
+            }
 
-        // 显示查询结果
-        int count = sortedData.size();
-        StringBuilder message = new StringBuilder();
-        message.append("查询结果：共找到 ").append(count).append(" 条记录\n");
-        message.append("查询方式：").append(searchType).append("\n");
-        
-        if (!"无".equals(subject)) {
-            message.append("筛选科目：").append(subject).append("\n");
+            tableView.setItems(sortedData);
+
+            // 显示查询结果
+            int count = sortedData.size();
+            StringBuilder message = new StringBuilder();
+            message.append("查询结果：共找到 ").append(count).append(" 条记录\n");
+            message.append("查询方式：").append(searchType).append("\n");
+            
+            if (!"无".equals(subject)) {
+                message.append("筛选科目：").append(subject).append("\n");
+            }
+            if (!"无筛选".equals(filter)) {
+                message.append("分数筛选：").append(filter).append("\n");
+            }
+            if (!"无".equals(sortOrder)) {
+                message.append("排序方式：").append(sortOrder);
+            }
+            
+            showInfo("查询结果", message.toString());
+        } catch (Exception e) {
+            showError("查询错误", "数据库查询失败", e.getMessage());
         }
-        if (!"无筛选".equals(filter)) {
-            message.append("分数筛选：").append(filter).append("\n");
-        }
-        if (!"无".equals(sortOrder)) {
-            message.append("排序方式：").append(sortOrder);
-        }
-        
-        showInfo("查询结果", message.toString());
     }
 
     private double getScoreBySubject(StudentRecord record, String subject) {
@@ -429,12 +488,78 @@ public class StudentDataService implements StudentDataGetter {
                 student.setMathgrade(record.getMathScore());
                 student.setJavagrade(record.getJavaScore());
                 
-                studentsMapper.updateById(student);
+                // 检查记录是否存在
+                Students existingStudent = studentsMapper.findByStudentId(record.getStudentId());
+                if (existingStudent != null) {
+                    // 更新现有记录
+                    studentsMapper.updateById(student);
+                } else {
+                    // 插入新记录
+                    studentsMapper.insert(student);
+                }
                 record.setModified(false);
             }
             showInfo("成功", "成功更新 " + modifiedRecords.size() + " 条记录");
+            
+            // 刷新表格数据
+            handleSearch();
         } catch (Exception e) {
             showError("错误", "更新数据失败", e.getMessage());
+        }
+    }
+
+    private void handleAddStudent() {
+        try {
+            StudentRecord newRecord = new StudentRecord();
+            newRecord.setModified(true);
+            masterData.add(newRecord);
+            tableView.getSelectionModel().select(newRecord);
+            tableView.scrollTo(newRecord);
+        } catch (Exception e) {
+            showError("错误", "添加学生失败", e.getMessage());
+        }
+    }
+
+    private void handleDeleteStudent() {
+        StudentRecord selectedRecord = tableView.getSelectionModel().getSelectedItem();
+        if (selectedRecord == null) {
+            showInfo("提示", "请先选择要删除的学生");
+            return;
+        }
+
+        try {
+            // 从数据库删除
+            if (selectedRecord.getStudentId() != null && !selectedRecord.getStudentId().isEmpty()) {
+                studentsMapper.deleteById(selectedRecord.getStudentId());
+            }
+            // 从表格中删除
+            masterData.remove(selectedRecord);
+            showInfo("成功", "成功删除学生记录");
+        } catch (Exception e) {
+            showError("错误", "删除学生失败", e.getMessage());
+        }
+    }
+
+    private void handleReset() {
+        searchField.clear();
+        searchTypeCombo.setValue("按学号查询");
+        subjectCombo.setValue("无");
+        filterCombo.setValue("无筛选");
+        sortOrderCombo.setValue("无");
+        sortOrderCombo.setDisable(true);
+        loadInitialData();
+    }
+
+    private void loadInitialData() {
+        try {
+            List<Students> students = studentsMapper.selectList(null);
+            masterData.clear();
+            for (Students student : students) {
+                masterData.add(new StudentRecord(student));
+            }
+            tableView.setItems(masterData);
+        } catch (Exception e) {
+            showError("错误", "加载数据失败", e.getMessage());
         }
     }
 
@@ -465,14 +590,33 @@ public class StudentDataService implements StudentDataGetter {
         }
     }
 
-    private void resetSearch() {
-        searchField.clear();
-        searchTypeCombo.setValue("按学号查询");
-        subjectCombo.setValue("无");
-        filterCombo.setValue("无筛选");
-        sortOrderCombo.setValue("无");
-        sortOrderCombo.setDisable(true);
-        masterData.clear();
+    // 数据验证方法
+    private boolean validateStudentId(String studentId) {
+        return studentId != null && studentId.matches("\\d{8}");
+    }
+
+    private boolean validateName(String name) {
+        return name != null && !name.trim().isEmpty() && name.length() <= 20;
+    }
+
+    private boolean validateGender(String gender) {
+        return gender != null && (gender.equals("男") || gender.equals("女"));
+    }
+
+    private boolean validateClassName(String className) {
+        return className != null && !className.trim().isEmpty() && className.length() <= 20;
+    }
+
+    private boolean validateIdNumber(String idNumber) {
+        return idNumber != null && idNumber.matches("[0-9Xx]{18}");
+    }
+
+    private boolean validateBirthdate(LocalDate date) {
+        return date != null && !date.isAfter(LocalDate.now());
+    }
+
+    private boolean validateScore(Double score) {
+        return score != null && score >= 0 && score <= 100;
     }
 
     @Data
@@ -500,6 +644,10 @@ public class StudentDataService implements StudentDataGetter {
             this.mathScore = student.getMathgrade();
             this.englishScore = student.getEnglishgrade();
             this.javaScore = student.getJavagrade();
+        }
+
+        public StudentRecord() {
+
         }
 
         public boolean isModified() {
