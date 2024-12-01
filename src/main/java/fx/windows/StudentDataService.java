@@ -25,10 +25,7 @@ import tables.Students;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Arrays;
+import java.util.*;
 
 @Component
 public class StudentDataService implements StudentDataGetter {
@@ -157,77 +154,27 @@ public class StudentDataService implements StudentDataGetter {
     private void setupTable() {
         tableView = new TableView<>();
         tableView.setEditable(true);
-        
+
         // 创建所有可能的列
         TableColumn<StudentRecord, String> idColumn = new TableColumn<>("学号");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("studentId"));
         idColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        idColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateStudentId(event.getNewValue())) {
-                record.setStudentId(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "学号格式错误", "学号必须是8位数字");
-            }
-        });
 
         TableColumn<StudentRecord, String> nameColumn = new TableColumn<>("姓名");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        nameColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateName(event.getNewValue())) {
-                record.setName(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "姓名格式错误", "姓名不能为空且长度不能超过20个字符");
-            }
-        });
 
         TableColumn<StudentRecord, String> genderColumn = new TableColumn<>("性别");
         genderColumn.setCellValueFactory(new PropertyValueFactory<>("gender"));
         genderColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        genderColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateGender(event.getNewValue())) {
-                record.setGender(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "性别格式错误", "性别只能是'男'或'女'");
-            }
-        });
 
         TableColumn<StudentRecord, String> classColumn = new TableColumn<>("班级");
         classColumn.setCellValueFactory(new PropertyValueFactory<>("className"));
         classColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        classColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateClassName(event.getNewValue())) {
-                record.setClassName(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "班级格式错误", "班级不能为空且长度不能超过20个字符");
-            }
-        });
 
         TableColumn<StudentRecord, String> idCardColumn = new TableColumn<>("身份证号");
         idCardColumn.setCellValueFactory(new PropertyValueFactory<>("idNumber"));
         idCardColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        idCardColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateIdNumber(event.getNewValue())) {
-                record.setIdNumber(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "身份证号格式错误", "身份证号必须是18位");
-            }
-        });
 
         TableColumn<StudentRecord, LocalDate> birthDateColumn = new TableColumn<>("出生日期");
         birthDateColumn.setCellValueFactory(new PropertyValueFactory<>("birthdate"));
@@ -259,16 +206,6 @@ public class StudentDataService implements StudentDataGetter {
         };
         
         birthDateColumn.setCellFactory(TextFieldTableCell.forTableColumn(dateConverter));
-        birthDateColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateBirthdate(event.getNewValue())) {
-                record.setBirthdate(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "出生日期格式错误", "日期格式必须为yyyy-MM-dd");
-            }
-        });
 
         // 为数值列创建特殊的编辑器
         StringConverter<Double> doubleConverter = new StringConverter<Double>() {
@@ -290,58 +227,18 @@ public class StudentDataService implements StudentDataGetter {
         TableColumn<StudentRecord, Double> chineseColumn = new TableColumn<>("语文");
         chineseColumn.setCellValueFactory(new PropertyValueFactory<>("chineseScore"));
         chineseColumn.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
-        chineseColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateScore(event.getNewValue())) {
-                record.setChineseScore(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "成绩格式错误", "成绩必须在0-100之间");
-            }
-        });
 
         TableColumn<StudentRecord, Double> mathColumn = new TableColumn<>("数学");
         mathColumn.setCellValueFactory(new PropertyValueFactory<>("mathScore"));
         mathColumn.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
-        mathColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateScore(event.getNewValue())) {
-                record.setMathScore(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "成绩格式错误", "成绩必须在0-100之间");
-            }
-        });
 
         TableColumn<StudentRecord, Double> englishColumn = new TableColumn<>("英语");
         englishColumn.setCellValueFactory(new PropertyValueFactory<>("englishScore"));
         englishColumn.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
-        englishColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateScore(event.getNewValue())) {
-                record.setEnglishScore(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "成绩格式错误", "成绩必须在0-100之间");
-            }
-        });
 
         TableColumn<StudentRecord, Double> javaColumn = new TableColumn<>("Java课程");
         javaColumn.setCellValueFactory(new PropertyValueFactory<>("javaScore"));
         javaColumn.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
-        javaColumn.setOnEditCommit(event -> {
-            StudentRecord record = event.getRowValue();
-            if (validateScore(event.getNewValue())) {
-                record.setJavaScore(event.getNewValue());
-                record.setModified(true);
-            } else {
-                tableView.refresh();
-                showError("错误", "成绩格式错误", "成绩必须在0-100之间");
-            }
-        });
 
         // 添加总分列
         TableColumn<StudentRecord, Double> totalScoreColumn = new TableColumn<>("总分");
@@ -374,6 +271,7 @@ public class StudentDataService implements StudentDataGetter {
         });
 
         // 存储所有列的映射关系
+        columnMap = new HashMap<>();
         columnMap.put("学号", idColumn);
         columnMap.put("姓名", nameColumn);
         columnMap.put("性别", genderColumn);
@@ -540,51 +438,6 @@ public class StudentDataService implements StudentDataGetter {
         }
     }
 
-    // 更新数据的处理方法
-    private void handleUpdate() {
-        List<StudentRecord> modifiedRecords = masterData.stream()
-                .filter(StudentRecord::isModified)
-                .toList();
-
-        if (modifiedRecords.isEmpty()) {
-            showInfo("提示", "没有需要更新的数据");
-            return;
-        }
-
-        try {
-            for (StudentRecord record : modifiedRecords) {
-                Students student = new Students();
-                student.setStudentid(record.getStudentId());
-                student.setName(record.getName());
-                student.setGender(record.getGender());
-                student.setClassname(record.getClassName());
-                student.setIdnumber(record.getIdNumber());
-                student.setBirthdate(record.getBirthdate());
-                student.setChinesegrade(record.getChineseScore());
-                student.setEnglishgrade(record.getEnglishScore());
-                student.setMathgrade(record.getMathScore());
-                student.setJavagrade(record.getJavaScore());
-                
-                // 检查记录是否存在
-                Students existingStudent = studentsMapper.findByStudentId(record.getStudentId());
-                if (existingStudent != null) {
-                    // 更新现有记录
-                    studentsMapper.updateById(student);
-                } else {
-                    // 插入新记录
-                    studentsMapper.insert(student);
-                }
-                record.setModified(false);
-            }
-            showInfo("成功", "成功更新 " + modifiedRecords.size() + " 条记录");
-            
-            // 刷新表格数据
-            handleSearch();
-        } catch (Exception e) {
-            showError("错误", "更新数据失败", e.getMessage());
-        }
-    }
-
     private void handleReset() {
         // 重置搜索条件
         searchField.clear();
@@ -691,7 +544,6 @@ public class StudentDataService implements StudentDataGetter {
         private double mathScore;
         private double englishScore;
         private double javaScore;
-        private boolean modified = false;  // 新增：标记记录是否被修改
 
         public double getTotalScore() {
             return chineseScore + mathScore + englishScore + javaScore;
@@ -714,16 +566,137 @@ public class StudentDataService implements StudentDataGetter {
             this.javaScore = student.getJavagrade();
         }
 
-        public StudentRecord() {
-
-        }
-
         public boolean isModified() {
-            return modified;
+            return false;
         }
 
         public void setModified(boolean modified) {
-            this.modified = modified;
+        }
+    }
+
+    private static class NumberTableCell<S> extends TableCell<S, Number> {
+        private final TextField textField = new TextField();
+        
+        public NumberTableCell() {
+            textField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+                if (!isNowFocused) {
+                    commitEdit();
+                }
+            });
+            
+            textField.setOnAction(e -> commitEdit());
+        }
+        
+        private void commitEdit() {
+            String text = textField.getText();
+            try {
+                double value = Double.parseDouble(text);
+                commitEdit(value);
+            } catch (NumberFormatException e) {
+                cancelEdit();
+            }
+        }
+        
+        @Override
+        public void startEdit() {
+            if (!isEditable() || !getTableView().isEditable() || !getTableColumn().isEditable()) {
+                return;
+            }
+            super.startEdit();
+            
+            if (isEditing()) {
+                if (textField != null) {
+                    textField.setText(getString());
+                }
+                setText(null);
+                setGraphic(textField);
+                textField.selectAll();
+                textField.requestFocus();
+            }
+        }
+        
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+            setText(getString());
+            setGraphic(null);
+        }
+        
+        @Override
+        public void updateItem(Number item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty) {
+                setText(null);
+                setGraphic(null);
+            } else if (isEditing()) {
+                textField.setText(getString());
+                setText(null);
+                setGraphic(textField);
+            } else {
+                setText(getString());
+                setGraphic(null);
+            }
+        }
+        
+        private String getString() {
+            return getItem() == null ? "" : String.format("%.1f", getItem().doubleValue());
+        }
+    }
+
+    private static class DatePickerTableCell<S> extends TableCell<S, LocalDate> {
+        private final DatePicker datePicker;
+        
+        public DatePickerTableCell() {
+            this.datePicker = new DatePicker();
+            this.datePicker.setEditable(true);
+            
+            this.datePicker.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+                if (!isNowFocused) {
+                    commitEdit(this.datePicker.getValue());
+                }
+            });
+            
+            this.datePicker.setOnAction(e -> commitEdit(this.datePicker.getValue()));
+        }
+        
+        @Override
+        public void startEdit() {
+            if (!isEditable() || !getTableView().isEditable() || !getTableColumn().isEditable()) {
+                return;
+            }
+            super.startEdit();
+            
+            if (isEditing()) {
+                datePicker.setValue(getItem());
+                setText(null);
+                setGraphic(datePicker);
+                datePicker.requestFocus();
+            }
+        }
+        
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+            setText(getItem() == null ? "" : getItem().format(DateTimeFormatter.ISO_LOCAL_DATE));
+            setGraphic(null);
+        }
+        
+        @Override
+        public void updateItem(LocalDate item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty) {
+                setText(null);
+                setGraphic(null);
+            } else {
+                if (isEditing()) {
+                    datePicker.setValue(item);
+                    setText(null);
+                    setGraphic(datePicker);
+                } else {
+                    setText(item == null ? "" : item.format(DateTimeFormatter.ISO_LOCAL_DATE));
+                    setGraphic(null);
+                }
+            }
         }
     }
 }
