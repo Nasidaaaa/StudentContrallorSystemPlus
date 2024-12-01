@@ -120,16 +120,7 @@ public class StudentDataService implements StudentDataGetter {
         Button resetButton = new Button("重置");
         resetButton.setOnAction(e -> handleReset());
 
-        Button updateButton = new Button("更新数据");
-        updateButton.setOnAction(e -> handleUpdate());
-
-        Button addButton = new Button("添加学生");
-        addButton.setOnAction(e -> handleAddStudent());
-
-        Button deleteButton = new Button("删除学生");
-        deleteButton.setOnAction(e -> handleDeleteStudent());
-
-        buttonBox.getChildren().addAll(searchButton, resetButton, updateButton, addButton, deleteButton);
+        buttonBox.getChildren().addAll(searchButton, resetButton);
 
         // 将所有区域添加到搜索区域
         searchArea.getChildren().addAll(searchTypeBox, filterSortBox, buttonBox);
@@ -140,9 +131,6 @@ public class StudentDataService implements StudentDataGetter {
         // 应用样式
         searchButton.getStyleClass().add("button");
         resetButton.getStyleClass().add("button");
-        updateButton.getStyleClass().add("button");
-        addButton.getStyleClass().add("button");
-        deleteButton.getStyleClass().add("button");
         tableView.getStyleClass().add("table-view");
 
         // 添加组件到主布局
@@ -151,6 +139,14 @@ public class StudentDataService implements StudentDataGetter {
         
         // 设置搜索框提示文本根据查询方式变化
         searchTypeCombo.setOnAction(e -> updateSearchFieldPrompt());
+        
+        // 添加科目选择监听器
+        subjectCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            // 当选择了具体科目时启用排序
+            sortOrderCombo.setDisable("无".equals(newVal));
+            // 更新显示的列
+            updateVisibleColumns(newVal);
+        });
         
         // 初始时禁用排序
         sortOrderCombo.setDisable(true);
@@ -347,6 +343,36 @@ public class StudentDataService implements StudentDataGetter {
             }
         });
 
+        // 添加总分列
+        TableColumn<StudentRecord, Double> totalScoreColumn = new TableColumn<>("总分");
+        totalScoreColumn.setCellValueFactory(new PropertyValueFactory<>("totalScore"));
+        totalScoreColumn.setCellFactory(column -> new TableCell<StudentRecord, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.1f", item));
+                }
+            }
+        });
+
+        // 添加平均分列
+        TableColumn<StudentRecord, Double> averageScoreColumn = new TableColumn<>("平均分");
+        averageScoreColumn.setCellValueFactory(new PropertyValueFactory<>("averageScore"));
+        averageScoreColumn.setCellFactory(column -> new TableCell<StudentRecord, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.1f", item));
+                }
+            }
+        });
+
         // 存储所有列的映射关系
         columnMap.put("学号", idColumn);
         columnMap.put("姓名", nameColumn);
@@ -358,13 +384,62 @@ public class StudentDataService implements StudentDataGetter {
         columnMap.put("数学", mathColumn);
         columnMap.put("英语", englishColumn);
         columnMap.put("Java课程", javaColumn);
+        columnMap.put("总分", totalScoreColumn);
+        columnMap.put("平均分", averageScoreColumn);
 
-        tableView.getColumns().addAll(Arrays.asList(
-            idColumn, nameColumn, genderColumn, classColumn, idCardColumn, birthDateColumn,
-            chineseColumn, mathColumn, englishColumn, javaColumn
-        ));
+        // 初始时显示所有列
+        updateVisibleColumns("无");
+    }
 
-        tableView.setItems(masterData);
+    private void updateVisibleColumns(String selectedSubject) {
+        // 获取所有基础信息列
+        List<TableColumn<StudentRecord, ?>> baseColumns = Arrays.asList(
+            columnMap.get("学号"),
+            columnMap.get("姓名"),
+            columnMap.get("性别"),
+            columnMap.get("班级"),
+            columnMap.get("身份证号"),
+            columnMap.get("出生日期")
+        );
+
+        // 清空当前所有列
+        tableView.getColumns().clear();
+        
+        // 添加基础信息列
+        tableView.getColumns().addAll(baseColumns);
+
+        // 根据选择的科目添加对应的列
+        switch (selectedSubject) {
+            case "总分":
+                tableView.getColumns().add(columnMap.get("总分"));
+                break;
+            case "语文":
+                tableView.getColumns().add(columnMap.get("语文"));
+                break;
+            case "数学":
+                tableView.getColumns().add(columnMap.get("数学"));
+                break;
+            case "英语":
+                tableView.getColumns().add(columnMap.get("英语"));
+                break;
+            case "Java课程":
+                tableView.getColumns().add(columnMap.get("Java课程"));
+                break;
+            case "平均分":
+                tableView.getColumns().add(columnMap.get("平均分"));
+                break;
+            case "无":
+                // 显示所有列
+                tableView.getColumns().addAll(
+                    columnMap.get("语文"),
+                    columnMap.get("数学"),
+                    columnMap.get("英语"),
+                    columnMap.get("Java课程"),
+                    columnMap.get("总分"),
+                    columnMap.get("平均分")
+                );
+                break;
+        }
     }
 
     private void handleSearch() {
@@ -459,6 +534,8 @@ public class StudentDataService implements StudentDataGetter {
             case "数学": return record.getMathScore();
             case "英语": return record.getEnglishScore();
             case "Java课程": return record.getJavaScore();
+            case "总分": return record.getTotalScore();
+            case "平均分": return record.getAverageScore();
             default: return 0.0;
         }
     }
@@ -508,46 +585,29 @@ public class StudentDataService implements StudentDataGetter {
         }
     }
 
-    private void handleAddStudent() {
-        try {
-            StudentRecord newRecord = new StudentRecord();
-            newRecord.setModified(true);
-            masterData.add(newRecord);
-            tableView.getSelectionModel().select(newRecord);
-            tableView.scrollTo(newRecord);
-        } catch (Exception e) {
-            showError("错误", "添加学生失败", e.getMessage());
-        }
-    }
-
-    private void handleDeleteStudent() {
-        StudentRecord selectedRecord = tableView.getSelectionModel().getSelectedItem();
-        if (selectedRecord == null) {
-            showInfo("提示", "请先选择要删除的学生");
-            return;
-        }
-
-        try {
-            // 从数据库删除
-            if (selectedRecord.getStudentId() != null && !selectedRecord.getStudentId().isEmpty()) {
-                studentsMapper.deleteById(selectedRecord.getStudentId());
-            }
-            // 从表格中删除
-            masterData.remove(selectedRecord);
-            showInfo("成功", "成功删除学生记录");
-        } catch (Exception e) {
-            showError("错误", "删除学生失败", e.getMessage());
-        }
-    }
-
     private void handleReset() {
+        // 重置搜索条件
         searchField.clear();
         searchTypeCombo.setValue("按学号查询");
         subjectCombo.setValue("无");
         filterCombo.setValue("无筛选");
         sortOrderCombo.setValue("无");
         sortOrderCombo.setDisable(true);
-        loadInitialData();
+
+        // 清空学生数据
+        masterData.clear();
+        tableView.setItems(masterData);
+
+        // 清除筛选条件
+        if (filteredData != null) {
+            filteredData.setPredicate(null);
+        }
+
+        // 更新搜索框提示
+        updateSearchFieldPrompt();
+        
+        // 重置显示的列为全部列
+        updateVisibleColumns("无");
     }
 
     private void loadInitialData() {
@@ -632,6 +692,14 @@ public class StudentDataService implements StudentDataGetter {
         private double englishScore;
         private double javaScore;
         private boolean modified = false;  // 新增：标记记录是否被修改
+
+        public double getTotalScore() {
+            return chineseScore + mathScore + englishScore + javaScore;
+        }
+
+        public double getAverageScore() {
+            return getTotalScore() / 4.0;
+        }
 
         public StudentRecord(Students student) {
             this.studentId = student.getStudentid();
