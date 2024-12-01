@@ -11,4 +11,6 @@ public interface StudentDataGetter {
     default List<Student> getStudentsList() {
         return studentsList;
     }
+
+
 }

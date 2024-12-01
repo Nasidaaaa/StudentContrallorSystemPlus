@@ -369,7 +369,7 @@ public class ScoreInput implements StudentDataGetter {
 
         //将已经检查的数据导入到studentsList
         importData(studentId,name,gender,className,idCard,birthDate,scores[0],scores[1],scores[2],scores[3]);
-        databaseThreadFactory.createDatabaseThread(studentsList).start();
+        databaseThreadFactory.createInsertDatabaseThread(studentsList).start();
 
         // 显示成功消息
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

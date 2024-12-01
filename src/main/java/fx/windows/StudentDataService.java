@@ -534,43 +534,85 @@ public class StudentDataService implements StudentDataGetter {
 
     @Data
     public static class StudentRecord {
-        private String studentId;
-        private String name;
-        private String gender;
-        private String className;
-        private String idNumber;
-        private LocalDate birthdate;
-        private double chineseScore;
-        private double mathScore;
-        private double englishScore;
-        private double javaScore;
+        private final StringProperty studentId = new SimpleStringProperty();
+        private final StringProperty name = new SimpleStringProperty();
+        private final StringProperty gender = new SimpleStringProperty();
+        private final StringProperty className = new SimpleStringProperty();
+        private final StringProperty idNumber = new SimpleStringProperty();
+        private final ObjectProperty<LocalDate> birthdate = new SimpleObjectProperty<>();
+        private final DoubleProperty chineseScore = new SimpleDoubleProperty();
+        private final DoubleProperty mathScore = new SimpleDoubleProperty();
+        private final DoubleProperty englishScore = new SimpleDoubleProperty();
+        private final DoubleProperty javaScore = new SimpleDoubleProperty();
+        private final BooleanProperty modified = new SimpleBooleanProperty(false);
 
-        public double getTotalScore() {
-            return chineseScore + mathScore + englishScore + javaScore;
-        }
-
-        public double getAverageScore() {
-            return getTotalScore() / 4.0;
+        public StudentRecord() {
         }
 
         public StudentRecord(Students student) {
-            this.studentId = student.getStudentid();
-            this.name = student.getName();
-            this.gender = student.getGender();
-            this.className = student.getClassname();
-            this.idNumber = student.getIdnumber();
-            this.birthdate = student.getBirthdate();
-            this.chineseScore = student.getChinesegrade();
-            this.mathScore = student.getMathgrade();
-            this.englishScore = student.getEnglishgrade();
-            this.javaScore = student.getJavagrade();
+            setStudentId(student.getStudentid());
+            setName(student.getName());
+            setGender(student.getGender());
+            setClassName(student.getClassname());
+            setIdNumber(student.getIdnumber());
+            setBirthdate(student.getBirthdate());
+            setChineseScore(student.getChinesegrade());
+            setMathScore(student.getMathgrade());
+            setEnglishScore(student.getEnglishgrade());
+            setJavaScore(student.getJavagrade());
         }
 
-        public boolean isModified() {
-            return false;
+        // Getters and Setters for properties
+        public String getStudentId() { return studentId.get(); }
+        public void setStudentId(String value) { studentId.set(value); }
+        public StringProperty studentIdProperty() { return studentId; }
+
+        public String getName() { return name.get(); }
+        public void setName(String value) { name.set(value); }
+        public StringProperty nameProperty() { return name; }
+
+        public String getGender() { return gender.get(); }
+        public void setGender(String value) { gender.set(value); }
+        public StringProperty genderProperty() { return gender; }
+
+        public String getClassName() { return className.get(); }
+        public void setClassName(String value) { className.set(value); }
+        public StringProperty classNameProperty() { return className; }
+
+        public String getIdNumber() { return idNumber.get(); }
+        public void setIdNumber(String value) { idNumber.set(value); }
+        public StringProperty idNumberProperty() { return idNumber; }
+
+        public LocalDate getBirthdate() { return birthdate.get(); }
+        public void setBirthdate(LocalDate value) { birthdate.set(value); }
+        public ObjectProperty<LocalDate> birthdateProperty() { return birthdate; }
+
+        public double getChineseScore() { return chineseScore.get(); }
+        public void setChineseScore(double value) { chineseScore.set(value); }
+        public DoubleProperty chineseScoreProperty() { return chineseScore; }
+
+        public double getMathScore() { return mathScore.get(); }
+        public void setMathScore(double value) { mathScore.set(value); }
+        public DoubleProperty mathScoreProperty() { return mathScore; }
+
+        public double getEnglishScore() { return englishScore.get(); }
+        public void setEnglishScore(double value) { englishScore.set(value); }
+        public DoubleProperty englishScoreProperty() { return englishScore; }
+
+        public double getJavaScore() { return javaScore.get(); }
+        public void setJavaScore(double value) { javaScore.set(value); }
+        public DoubleProperty javaScoreProperty() { return javaScore; }
+
+        public boolean isModified() { return modified.get(); }
+        public void setModified(boolean value) { modified.set(value); }
+        public BooleanProperty modifiedProperty() { return modified; }
+
+        public double getTotalScore() {
+            return getChineseScore() + getMathScore() + getEnglishScore() + getJavaScore();
         }
 
-        public void setModified(boolean modified) {
+        public double getAverageScore() {
+            return getTotalScore() / 4;
         }
     }
 
