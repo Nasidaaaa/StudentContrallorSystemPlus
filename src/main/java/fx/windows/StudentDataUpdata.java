@@ -8,8 +8,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.collections.FXCollections;
+import lombok.Setter;
+import org.springframework.stereotype.Component;
 
-public class StudentDataUpdata {
+@Component
+public class StudentDataUpdata implements StudentDataGetter {
+    @Setter
     private ObservableList<StudentDataService.StudentRecord> masterData;
     private TextField studentIdField;
     private TextField nameField;
@@ -121,10 +125,6 @@ public class StudentDataUpdata {
         content.getChildren().addAll(operationBox, searchBox, modifyBox);
 
         return content;
-    }
-
-    public void setMasterData(ObservableList<StudentDataService.StudentRecord> data) {
-        this.masterData = data;
     }
 
     private void searchStudent() {

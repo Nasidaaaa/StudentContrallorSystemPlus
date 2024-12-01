@@ -1,52 +1,26 @@
 package com.yang.studentcontrallorsystemplus;
 
-import com.sun.tools.javac.Main;
 import fx.StudentManagementApp;
-import fx.windows.ScoreInput;
-import jakarta.annotation.Resource;
-import mapper.StudentsMapper;
+import javafx.application.Application;
+import lombok.Getter;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import tables.Students;
+import org.springframework.context.ConfigurableApplicationContext;
 
-import java.util.List;
-
-import static javafx.application.Application.launch;
-
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.yang", "fx", "mapper"})
 @MapperScan("mapper")
 public class StudentContrallorSystemPlusApplication {
 
+    @Getter
+    private static ConfigurableApplicationContext springContext;
 
-
-
-	public static void main(String[] args) {
-
-
-			// 启动Spring Boot应用程序
-			SpringApplication.run(Main.class, args);
-			// 启动JavaFX应用程序方法
-			launchJavaFXApp(args);
-
-	}
-
-
-
-
-
-
-
-
-
-
-
-	// 使用新的线程启动JavaFX应用程序
-	private static void launchJavaFXApp(String[] args) {
-
-		new Thread(() -> {
-			StudentManagementApp.main(args); // 启动JavaFX应用程序
-		}).start();
-	}
+    public static void main(String[] args) {
+        // 启动Spring Boot
+        springContext = SpringApplication.run(StudentContrallorSystemPlusApplication.class, args);
+        
+        // 启动JavaFX
+        Application.launch(StudentManagementApp.class, args);
+    }
 
 }

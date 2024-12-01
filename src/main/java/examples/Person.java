@@ -7,6 +7,9 @@ public class Person extends Date{
     private String gender;
     private String idCardNumber;
 
+    Person(){
+
+    }
     public Person(int year, int month, int day , String name, String gender, String idCardNumber) {
         super(year, month, day);
         this.name = name;

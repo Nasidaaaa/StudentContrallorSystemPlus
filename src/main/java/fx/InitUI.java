@@ -18,19 +18,19 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
-public class InitUI extends Application {
-    private VBox mainContent;
+@Component
+public class InitUI {
+    @Autowired
+    private ApplicationContext applicationContext;
+    
     private Stage primaryStage;
     private BorderPane mainLayout;
     private VBox menuLayout;
     private Scene scene;
-
-    @Override
-    public void start(Stage primaryStage) {
-        this.primaryStage = primaryStage;
-        initUI(primaryStage);
-    }
 
     public void initUI(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -131,19 +131,19 @@ public class InitUI extends Application {
     }
 
     private void showScoreInput() {
-        ScoreInput scoreInput = new ScoreInput();
+        ScoreInput scoreInput = applicationContext.getBean(ScoreInput.class);
         VBox content = scoreInput.getContent();
         showContent(content, "学生成绩录入");
     }
 
     private void showStudentQuery() {
-        StudentDataService dataService = new StudentDataService();
+        StudentDataService dataService = applicationContext.getBean(StudentDataService.class);
         VBox content = dataService.getContent();
         showContent(content, "学生成绩查询");
     }
 
     private void showStudentUpdate() {
-        StudentDataUpdata dataUpdate = new StudentDataUpdata();
+        StudentDataUpdata dataUpdate = applicationContext.getBean(StudentDataUpdata.class);
         VBox content = dataUpdate.getContent();
         showContent(content, "学生信息修改");
     }
@@ -163,9 +163,5 @@ public class InitUI extends Application {
         // 更新主布局
         mainLayout.setCenter(containerWithBack);
         primaryStage.setTitle("学生成绩管理系统 - " + title);
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

@@ -3,7 +3,15 @@ spring:
     username: root
     password: 201277
     url: jdbc:mysql://localhost:3306/studentdatabase
-    driver-class-name:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  main:
+    allow-circular-references: true
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  type-aliases-package: tables
+  mapper-locations: classpath:mapper/*.xml
 logging:
   level:
     studentcontrallorsystrem: debug

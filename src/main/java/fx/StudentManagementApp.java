@@ -1,20 +1,33 @@
 package fx;
 
+import com.yang.studentcontrallorsystemplus.StudentContrallorSystemPlusApplication;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.context.ConfigurableApplicationContext;
 
-@MapperScan("mapper")
 public class StudentManagementApp extends Application {
+    private ConfigurableApplicationContext springContext;
 
-    public static void main(String[] args) {
+    @Override
+    public void init() {
 
-        launch(args);
+        springContext = StudentContrallorSystemPlusApplication.getSpringContext();
     }
 
     @Override
     public void start(Stage primaryStage) {
-        InitUI ui = new InitUI();
+        InitUI ui = springContext.getBean(InitUI.class);
         ui.initUI(primaryStage);
+    }
+
+    @Override
+    public void stop() {
+        if (springContext != null) {
+            springContext.close();
+        }
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }

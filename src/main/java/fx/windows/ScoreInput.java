@@ -8,11 +8,16 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Priority;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
+@Component
 public class ScoreInput implements StudentDataGetter {
+    @Autowired
+    private DatabaseThreadFactory databaseThreadFactory;
+
     private TextField studentIdField;
     private TextField nameField;
     private ComboBox<String> genderCombo;
@@ -364,7 +369,7 @@ public class ScoreInput implements StudentDataGetter {
 
         //将已经检查的数据导入到studentsList
         importData(studentId,name,gender,className,idCard,birthDate,scores[0],scores[1],scores[2],scores[3]);
-
+        databaseThreadFactory.createDatabaseThread(studentsList).start();
 
         // 显示成功消息
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

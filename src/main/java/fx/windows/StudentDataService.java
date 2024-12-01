@@ -1,5 +1,6 @@
 package fx.windows;
 
+import examples.Student;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -19,7 +20,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
 
-public class StudentDataService {
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class StudentDataService implements StudentDataGetter {
     private TableView<StudentRecord> tableView;
     private TextField searchField;
     private ComboBox<String> searchTypeCombo;
@@ -29,7 +35,15 @@ public class StudentDataService {
     private ObservableList<StudentRecord> masterData = FXCollections.observableArrayList();
     private FilteredList<StudentRecord> filteredData;
     private Map<String, TableColumn<StudentRecord, ?>> columnMap = new HashMap<>();
+    @Autowired
+    private DatabaseThreadFactory databaseThreadFactory;
 
+
+
+    //从数据库中初始化本类中的studentsList
+    private void getData(){
+
+    }
     /**
      * 获取主要内容区域
      * 包括搜索条件区域、表格区域和按钮区域
@@ -133,7 +147,7 @@ public class StudentDataService {
         VBox.setVgrow(tableView, Priority.ALWAYS);
         
         // 初始化测试数据
-        loadTestData();
+        loadData();
         
         // 设置搜索框提示文本根据查询方式变化
         searchTypeCombo.setOnAction(e -> updateSearchFieldPrompt());
@@ -427,11 +441,11 @@ public class StudentDataService {
     }
 
     /**
-     * 加载测试数据
-     * 初始化表格的示例数据
+     * 加载数据
+     * 表格的示例数据
      * 包含学生基本信息和各科成绩
      */
-    private void loadTestData() {
+    private void loadData() {
         // 添加一些测试数据
         masterData.addAll(
             new StudentRecord("2021001", "张三", "男", "软件2101", "330101200001011234", 85, 90, 88, 92),
@@ -447,9 +461,13 @@ public class StudentDataService {
      */
     public static class StudentRecord {
         private String studentId;
+        @Setter
         private String name;
+        @Setter
         private String gender;
+        @Setter
         private String className;
+        @Setter
         private String idCard;
         private double chinese;
         private double math;
@@ -473,6 +491,21 @@ public class StudentDataService {
             this.average = this.total / 4;
         }
 
+        public StudentRecord(Student student){
+
+            this.studentId = student.getStudentId();
+            this.name = student.getName();
+            this.gender = student.getGender();
+            this.className = student.getClassName();
+            this.idCard = student.getIdCardNumber();
+            this.chinese = student.getChineseScores();
+            this.math = student.getMathScores();
+            this.english = student.getEnglishScores();
+            this.java = student.getJavaScores();
+            this.total = student.getChineseScores() + student.getMathScores() + student.getEnglishScores() + student.getJavaScores();
+            this.average = this.total / 4;
+        }
+
         // Getters
         public String getStudentId() { return studentId; }
         public String getName() { return name; }
@@ -488,11 +521,8 @@ public class StudentDataService {
 
         // Setters
         public void setStudentId(String studentId) { this.studentId = studentId; }
-        public void setName(String name) { this.name = name; }
-        public void setGender(String gender) { this.gender = gender; }
-        public void setClassName(String className) { this.className = className; }
-        public void setIdCard(String idCard) { this.idCard = idCard; }
-        public void setChinese(double chinese) { 
+
+        public void setChinese(double chinese) {
             this.chinese = chinese;
             updateTotalAndAverage();
         }
