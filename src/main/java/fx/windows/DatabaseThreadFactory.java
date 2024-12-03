@@ -26,4 +26,15 @@ public class DatabaseThreadFactory {
     public Thread createUpdateDatabaseThread(Students student) {
         return new DatabaseUpdateThread(student, studentsMapper);
     }
+
+    public Thread createDeleteDatabaseThread(String studentId) {
+        return new Thread(() -> {
+            try {
+                studentsMapper.deleteById(studentId);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("删除学生信息失败: " + e.getMessage());
+            }
+        });
+    }
 }

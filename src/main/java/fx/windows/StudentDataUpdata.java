@@ -34,6 +34,7 @@ public class StudentDataUpdata implements StudentDataGetter {
     private TableView<StudentDataService.StudentRecord> tableView;
     private Button searchButton;
     private Button submitButton;
+    private Button deleteButton;
 
     @Autowired
     private DatabaseThreadFactory databaseThreadFactory;
@@ -103,7 +104,14 @@ public class StudentDataUpdata implements StudentDataGetter {
         submitButton.setOnAction(e -> submitChanges());
         submitButton.setDisable(true);
 
-        searchBox.getChildren().addAll(idLabel, studentIdField, searchButton, submitButton);
+        deleteButton = new Button("删除");
+        deleteButton.setOnAction(e -> deleteStudent());
+        deleteButton.setDisable(true);
+
+        Button resetButton = new Button("重置");
+        resetButton.setOnAction(e -> clearTable());
+
+        searchBox.getChildren().addAll(idLabel, studentIdField, searchButton, submitButton, deleteButton, resetButton);
 
         // 创建表格
         setupTable();
@@ -236,33 +244,85 @@ public class StudentDataUpdata implements StudentDataGetter {
             return;
         }
 
-        // 从studentsList中查找学生
-        Student student = studentsList.stream()
-                .filter(s -> s.getStudentId().equals(studentId))
-                .findFirst()
-                .orElse(null);
+        // 在数据库中查找学生
+        try {
+            databaseGetThread = (DatabaseGetThread) databaseThreadFactory.createGetDatabaseThread(studentsList);
+            databaseGetThread.start();
+            databaseGetThread.join();
 
-        if (student == null) {
-            showAlert("提示", "未找到该学生", Alert.AlertType.WARNING);
+            // 在studentsList中查找对应学号的学生
+            Optional<Student> foundStudent = studentsList.stream()
+                    .filter(s -> s.getStudentId().equals(studentId))
+                    .findFirst();
+
+            if (foundStudent.isPresent()) {
+                Student student = foundStudent.get();
+                StudentDataService.StudentRecord record = new StudentDataService.StudentRecord();
+                record.setStudentId(student.getStudentId());
+                record.setName(student.getName());
+                record.setGender(student.getGender());
+                record.setClassName(student.getClassName());
+                record.setIdNumber(student.getIdCardNumber());
+                record.setChineseScore(student.getChineseScores());
+                record.setMathScore(student.getMathScores());
+                record.setEnglishScore(student.getEnglishScores());
+                record.setJavaScore(student.getJavaScores());
+
+                // 清空表格并添加找到的学生记录
+                tableView.getItems().clear();
+                tableView.getItems().add(record);
+                submitButton.setDisable(false);
+                deleteButton.setDisable(false);
+            } else {
+                showAlert("提示", "未找到该学号的学生", Alert.AlertType.INFORMATION);
+                clearTable();
+            }
+        } catch (Exception e) {
+            showAlert("错误", "查询失败: " + e.getMessage(), Alert.AlertType.ERROR);
+            clearTable();
+        }
+    }
+
+    /**
+     * 删除学生信息
+     */
+    private void deleteStudent() {
+        if (tableView.getItems().isEmpty()) {
+            showAlert("错误", "没有可删除的数据", Alert.AlertType.ERROR);
             return;
         }
 
-        // 将找到的Student转换为StudentRecord并显示在表格中
-        StudentDataService.StudentRecord record = new StudentDataService.StudentRecord();
-        record.setStudentId(student.getStudentId());
-        record.setName(student.getName());
-        record.setGender(student.getGender());
-        record.setClassName(student.getClassName());
-        record.setIdNumber(student.getIdCardNumber());
-        record.setChineseScore(student.getChineseScores());
-        record.setMathScore(student.getMathScores());
-        record.setEnglishScore(student.getEnglishScores());
-        record.setJavaScore(student.getJavaScores());
+        StudentDataService.StudentRecord record = tableView.getItems().get(0);
+        
+        // 显示确认对话框
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("确认删除");
+        alert.setHeaderText("是否确认删除以下学生信息？");
+        
+        String content = String.format(
+                "学号: %s\n姓名: %s\n性别: %s\n班级: %s",
+                record.getStudentId(), record.getName(), record.getGender(), record.getClassName()
+        );
+        alert.setContentText(content);
 
-        // 清空表格并添加找到的学生记录
-        tableView.getItems().clear();
-        tableView.getItems().add(record);
-        submitButton.setDisable(false);
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                // 从数据库中删除
+                Thread deleteThread = databaseThreadFactory.createDeleteDatabaseThread(record.getStudentId());
+                deleteThread.start();
+                deleteThread.join();
+                
+                // 从studentsList中删除
+                studentsList.removeIf(s -> s.getStudentId().equals(record.getStudentId()));
+                
+                // 清空表格
+                clearTable();
+                showAlert("成功", "学生信息删除成功", Alert.AlertType.INFORMATION);
+            } catch (Exception e) {
+                showAlert("错误", "删除失败: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
+        }
     }
 
     /**
@@ -399,6 +459,7 @@ public class StudentDataUpdata implements StudentDataGetter {
         tableView.getItems().clear();
         studentIdField.clear();
         submitButton.setDisable(true);
+        deleteButton.setDisable(true);
     }
 
     /**
