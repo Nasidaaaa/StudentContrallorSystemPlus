@@ -441,6 +441,7 @@ public class StudentDataService implements StudentDataGetter {
     private void handleReset() {
         // 重置搜索条件
         searchField.clear();
+
         searchTypeCombo.setValue("按学号查询");
         subjectCombo.setValue("无");
         filterCombo.setValue("无筛选");

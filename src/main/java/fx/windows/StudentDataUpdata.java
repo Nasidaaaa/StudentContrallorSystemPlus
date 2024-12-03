@@ -1,16 +1,14 @@
 package fx.windows;
 
 import examples.Student;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.collections.FXCollections;
 import javafx.util.StringConverter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,19 +27,27 @@ import java.util.Optional;
 @Component
 public class StudentDataUpdata implements StudentDataGetter {
     @Setter
-    private ObservableList<StudentDataService.StudentRecord> masterData = FXCollections.observableArrayList();
+    private ObservableList<Object> masterData = FXCollections.observableArrayList();
     private TextField studentIdField;
-    private TableView<StudentDataService.StudentRecord> tableView;
+    private TextField nameField;
+    private ComboBox<String> genderComboBox;
+    private TextField classNameField;
+    private TextField idNumberField;
+    private TextField chineseScoreField;
+    private TextField mathScoreField;
+    private TextField englishScoreField;
+    private TextField javaScoreField;
     private Button searchButton;
     private Button submitButton;
+    private Button resetButton;
     private Button deleteButton;
+    private GridPane formGrid;
 
     @Autowired
     private DatabaseThreadFactory databaseThreadFactory;
 
     private DatabaseGetThread databaseGetThread;
     private DatabaseInsertThread databaseInsertThread;
-
 
     public void setStudentsList(List<Student> studentsList) {
         // 将Student转换为StudentRecord并更新masterData
@@ -81,7 +87,6 @@ public class StudentDataUpdata implements StudentDataGetter {
         //初始化数据库数据
         initStudentData();
 
-
         VBox content = new VBox(20);
         content.setPadding(new Insets(20));
         content.setAlignment(Pos.TOP_CENTER);
@@ -104,139 +109,98 @@ public class StudentDataUpdata implements StudentDataGetter {
         submitButton.setOnAction(e -> submitChanges());
         submitButton.setDisable(true);
 
-        deleteButton = new Button("删除");
+        resetButton = new Button("重置");
+        resetButton.setOnAction(e -> clearForm());
+
+        deleteButton = new Button("删除学生");
         deleteButton.setOnAction(e -> deleteStudent());
         deleteButton.setDisable(true);
 
-        Button resetButton = new Button("重置");
-        resetButton.setOnAction(e -> clearTable());
+        searchBox.getChildren().addAll(idLabel, studentIdField, searchButton, submitButton, resetButton, deleteButton);
 
-        searchBox.getChildren().addAll(idLabel, studentIdField, searchButton, submitButton, deleteButton, resetButton);
+        // 创建表单
+        setupForm();
 
-        // 创建表格
-        setupTable();
-
-        // 添加所有组件到主布局
-        content.getChildren().addAll(searchBox, tableView);
+        // 添加组件到主布局
+        content.getChildren().addAll(searchBox, formGrid);
 
         return content;
     }
 
-    /**
-     * 设置表格
-     * 初始化表格视图，创建所有列并设置它们的属性和编辑功能
-     * 包括学号、姓名、性别、班级、身份证号和各科成绩列
-     */
-    private void setupTable() {
-        tableView = new TableView<>();
-        tableView.setEditable(true);
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+    private void setupForm() {
+        formGrid = new GridPane();
+        formGrid.setHgap(10);
+        formGrid.setVgap(10);
+        formGrid.setPadding(new Insets(20));
+        formGrid.setAlignment(Pos.CENTER);
 
-        // 学号列
-        TableColumn<StudentDataService.StudentRecord, String> studentIdCol = new TableColumn<>("学号");
-        studentIdCol.setCellValueFactory(new PropertyValueFactory<>("studentId"));
-        studentIdCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        studentIdCol.setOnEditCommit(event -> {
-            event.getRowValue().setStudentId(event.getNewValue());
-        });
+        // 创建所有输入字段
+        nameField = new TextField();
+        genderComboBox = new ComboBox<>();
+        genderComboBox.getItems().addAll("男", "女");
+        classNameField = new TextField();
+        idNumberField = new TextField();
+        chineseScoreField = new TextField();
+        mathScoreField = new TextField();
+        englishScoreField = new TextField();
+        javaScoreField = new TextField();
 
-        // 姓名列
-        TableColumn<StudentDataService.StudentRecord, String> nameCol = new TableColumn<>("姓名");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-        nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        nameCol.setOnEditCommit(event -> {
-            event.getRowValue().setName(event.getNewValue());
-        });
+        // 添加标签和输入字段到表单
+        int row = 0;
+        formGrid.add(new Label("姓名:"), 0, row);
+        formGrid.add(nameField, 1, row++);
 
-        // 性别列
-        TableColumn<StudentDataService.StudentRecord, String> genderCol = new TableColumn<>("性别");
-        genderCol.setCellValueFactory(new PropertyValueFactory<>("gender"));
-        genderCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        genderCol.setOnEditCommit(event -> {
-            event.getRowValue().setGender(event.getNewValue());
-        });
+        formGrid.add(new Label("性别:"), 0, row);
+        formGrid.add(genderComboBox, 1, row++);
 
-        // 班级列
-        TableColumn<StudentDataService.StudentRecord, String> classNameCol = new TableColumn<>("班级");
-        classNameCol.setCellValueFactory(new PropertyValueFactory<>("className"));
-        classNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        classNameCol.setOnEditCommit(event -> {
-            event.getRowValue().setClassName(event.getNewValue());
-        });
+        formGrid.add(new Label("班级:"), 0, row);
+        formGrid.add(classNameField, 1, row++);
 
-        // 身份证号列
-        TableColumn<StudentDataService.StudentRecord, String> idNumberCol = new TableColumn<>("身份证号");
-        idNumberCol.setCellValueFactory(new PropertyValueFactory<>("idNumber"));
-        idNumberCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        idNumberCol.setOnEditCommit(event -> {
-            event.getRowValue().setIdNumber(event.getNewValue());
-        });
+        formGrid.add(new Label("身份证号:"), 0, row);
+        formGrid.add(idNumberField, 1, row++);
 
-        // 成绩列
-        TableColumn<StudentDataService.StudentRecord, Double> chineseScoreCol = new TableColumn<>("语文成绩");
-        chineseScoreCol.setCellValueFactory(new PropertyValueFactory<>("chineseScore"));
-        setupScoreColumn(chineseScoreCol, "setChineseScore");
+        formGrid.add(new Label("语文成绩:"), 0, row);
+        formGrid.add(chineseScoreField, 1, row++);
 
-        TableColumn<StudentDataService.StudentRecord, Double> mathScoreCol = new TableColumn<>("数学成绩");
-        mathScoreCol.setCellValueFactory(new PropertyValueFactory<>("mathScore"));
-        setupScoreColumn(mathScoreCol, "setMathScore");
+        formGrid.add(new Label("数学成绩:"), 0, row);
+        formGrid.add(mathScoreField, 1, row++);
 
-        TableColumn<StudentDataService.StudentRecord, Double> englishScoreCol = new TableColumn<>("英语成绩");
-        englishScoreCol.setCellValueFactory(new PropertyValueFactory<>("englishScore"));
-        setupScoreColumn(englishScoreCol, "setEnglishScore");
+        formGrid.add(new Label("英语成绩:"), 0, row);
+        formGrid.add(englishScoreField, 1, row++);
 
-        TableColumn<StudentDataService.StudentRecord, Double> javaScoreCol = new TableColumn<>("Java成绩");
-        javaScoreCol.setCellValueFactory(new PropertyValueFactory<>("javaScore"));
-        setupScoreColumn(javaScoreCol, "setJavaScore");
+        formGrid.add(new Label("Java成绩:"), 0, row);
+        formGrid.add(javaScoreField, 1, row);
 
-        tableView.getColumns().addAll(
-                studentIdCol, nameCol, genderCol, classNameCol, idNumberCol,
-                chineseScoreCol, mathScoreCol, englishScoreCol, javaScoreCol
-        );
+        // 设置所有字段为禁用状态
+        setFormFieldsDisabled(true);
     }
 
-    /**
-     * 设置成绩列
-     * 为成绩列配置单元格工厂和编辑提交事件处理
-     * @param column 要设置的成绩列
-     * @param setter 用于更新成绩的setter方法名
-     */
-    private void setupScoreColumn(TableColumn<StudentDataService.StudentRecord, Double> column, String setter) {
-        column.setCellFactory(TextFieldTableCell.forTableColumn(new StringConverter<Double>() {
-            @Override
-            public String toString(Double object) {
-                return object == null ? "" : String.format("%.1f", object);
-            }
-
-            @Override
-            public Double fromString(String string) {
-                try {
-                    return Double.parseDouble(string);
-                } catch (NumberFormatException e) {
-                    return 0.0;
-                }
-            }
-        }));
-        column.setOnEditCommit(event -> {
-            try {
-                double newValue = event.getNewValue();
-                if (newValue >= 0 && newValue <= 100) {
-                    event.getRowValue().getClass().getMethod(setter, Double.class)
-                            .invoke(event.getRowValue(), newValue);
-                    event.getRowValue().setModified(true);
-                } else {
-                    showAlert("错误", "成绩必须在0-100之间", Alert.AlertType.ERROR);
-                }
-            } catch (Exception e) {
-                showAlert("错误", "成绩格式不正确", Alert.AlertType.ERROR);
-            }
-        });
+    private void setFormFieldsDisabled(boolean disabled) {
+        nameField.setDisable(disabled);
+        genderComboBox.setDisable(disabled);
+        classNameField.setDisable(disabled);
+        idNumberField.setDisable(disabled);
+        chineseScoreField.setDisable(disabled);
+        mathScoreField.setDisable(disabled);
+        englishScoreField.setDisable(disabled);
+        javaScoreField.setDisable(disabled);
     }
 
-    /**
-     * 处理学生搜索
-     * 根据输入的学号查找并显示学生信息
-     */
+    private void clearForm() {
+        studentIdField.clear();
+        nameField.clear();
+        genderComboBox.setValue(null);
+        classNameField.clear();
+        idNumberField.clear();
+        chineseScoreField.clear();
+        mathScoreField.clear();
+        englishScoreField.clear();
+        javaScoreField.clear();
+        setFormFieldsDisabled(true);
+        submitButton.setDisable(true);
+        deleteButton.setDisable(true);
+    }
+
     private void searchStudent() {
         String studentId = studentIdField.getText().trim();
         if (studentId.isEmpty()) {
@@ -244,101 +208,37 @@ public class StudentDataUpdata implements StudentDataGetter {
             return;
         }
 
-        // 在数据库中查找学生
-        try {
-            databaseGetThread = (DatabaseGetThread) databaseThreadFactory.createGetDatabaseThread(studentsList);
-            databaseGetThread.start();
-            databaseGetThread.join();
+        // 从studentsList中查找学生
+        Student student = studentsList.stream()
+                .filter(s -> s.getStudentId().equals(studentId))
+                .findFirst()
+                .orElse(null);
 
-            // 在studentsList中查找对应学号的学生
-            Optional<Student> foundStudent = studentsList.stream()
-                    .filter(s -> s.getStudentId().equals(studentId))
-                    .findFirst();
-
-            if (foundStudent.isPresent()) {
-                Student student = foundStudent.get();
-                StudentDataService.StudentRecord record = new StudentDataService.StudentRecord();
-                record.setStudentId(student.getStudentId());
-                record.setName(student.getName());
-                record.setGender(student.getGender());
-                record.setClassName(student.getClassName());
-                record.setIdNumber(student.getIdCardNumber());
-                record.setChineseScore(student.getChineseScores());
-                record.setMathScore(student.getMathScores());
-                record.setEnglishScore(student.getEnglishScores());
-                record.setJavaScore(student.getJavaScores());
-
-                // 清空表格并添加找到的学生记录
-                tableView.getItems().clear();
-                tableView.getItems().add(record);
-                submitButton.setDisable(false);
-                deleteButton.setDisable(false);
-            } else {
-                showAlert("提示", "未找到该学号的学生", Alert.AlertType.INFORMATION);
-                clearTable();
-            }
-        } catch (Exception e) {
-            showAlert("错误", "查询失败: " + e.getMessage(), Alert.AlertType.ERROR);
-            clearTable();
-        }
-    }
-
-    /**
-     * 删除学生信息
-     */
-    private void deleteStudent() {
-        if (tableView.getItems().isEmpty()) {
-            showAlert("错误", "没有可删除的数据", Alert.AlertType.ERROR);
+        if (student == null) {
+            showAlert("提示", "未找到该学生", Alert.AlertType.WARNING);
+            clearForm();
             return;
         }
 
-        StudentDataService.StudentRecord record = tableView.getItems().get(0);
-        
-        // 显示确认对话框
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("确认删除");
-        alert.setHeaderText("是否确认删除以下学生信息？");
-        
-        String content = String.format(
-                "学号: %s\n姓名: %s\n性别: %s\n班级: %s",
-                record.getStudentId(), record.getName(), record.getGender(), record.getClassName()
-        );
-        alert.setContentText(content);
+        // 填充表单
+        nameField.setText(student.getName());
+        genderComboBox.setValue(student.getGender());
+        classNameField.setText(student.getClassName());
+        idNumberField.setText(student.getIdCardNumber());
+        chineseScoreField.setText(String.format("%.1f", student.getChineseScores()));
+        mathScoreField.setText(String.format("%.1f", student.getMathScores()));
+        englishScoreField.setText(String.format("%.1f", student.getEnglishScores()));
+        javaScoreField.setText(String.format("%.1f", student.getJavaScores()));
 
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                // 从数据库中删除
-                Thread deleteThread = databaseThreadFactory.createDeleteDatabaseThread(record.getStudentId());
-                deleteThread.start();
-                deleteThread.join();
-                
-                // 从studentsList中删除
-                studentsList.removeIf(s -> s.getStudentId().equals(record.getStudentId()));
-                
-                // 清空表格
-                clearTable();
-                showAlert("成功", "学生信息删除成功", Alert.AlertType.INFORMATION);
-            } catch (Exception e) {
-                showAlert("错误", "删除失败: " + e.getMessage(), Alert.AlertType.ERROR);
-            }
-        }
+        // 启用表单字段和提交按钮
+        setFormFieldsDisabled(false);
+        submitButton.setDisable(false);
+        deleteButton.setDisable(false);
     }
 
-    /**
-     * 处理提交更改
-     * 更新学生信息并同步到数据库
-     */
     private void submitChanges() {
-        if (tableView.getItems().isEmpty()) {
-            showAlert("错误", "没有可更新的数据", Alert.AlertType.ERROR);
-            return;
-        }
-
-        StudentDataService.StudentRecord record = tableView.getItems().get(0);
-        
-        // 验证数据
-        if (!validateRecord(record)) {
+        // 验证输入
+        if (!validateForm()) {
             return;
         }
 
@@ -348,10 +248,10 @@ public class StudentDataUpdata implements StudentDataGetter {
         alert.setHeaderText("是否确认提交以下更新？");
         
         String content = String.format(
-                "学号: %s\n姓名: %s\n性别: %s\n班级: %s\n身份证号: %s\n语文: %.1f\n数学: %.1f\n英语: %.1f\nJava: %.1f",
-                record.getStudentId(), record.getName(), record.getGender(), record.getClassName(),
-                record.getIdNumber(), record.getChineseScore(), record.getMathScore(),
-                record.getEnglishScore(), record.getJavaScore()
+                "学号: %s\n姓名: %s\n性别: %s\n班级: %s\n身份证号: %s\n语文: %s\n数学: %s\n英语: %s\nJava: %s",
+                studentIdField.getText(), nameField.getText(), genderComboBox.getValue(), 
+                classNameField.getText(), idNumberField.getText(), chineseScoreField.getText(),
+                mathScoreField.getText(), englishScoreField.getText(), javaScoreField.getText()
         );
         alert.setContentText(content);
 
@@ -359,32 +259,30 @@ public class StudentDataUpdata implements StudentDataGetter {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // 更新studentsList中对应的Student对象
             Student studentToUpdate = studentsList.stream()
-                    .filter(s -> s.getStudentId().equals(record.getStudentId()))
+                    .filter(s -> s.getStudentId().equals(studentIdField.getText()))
                     .findFirst()
                     .orElse(null);
 
             if (studentToUpdate != null) {
                 // 更新Student对象
-                studentToUpdate.setName(record.getName());
-                studentToUpdate.setGender(record.getGender());
-                studentToUpdate.setClassName(record.getClassName());
-                studentToUpdate.setIdCardNumber(record.getIdNumber());
-                studentToUpdate.setChineseScores(record.getChineseScore());
-                studentToUpdate.setMathScores(record.getMathScore());
-                studentToUpdate.setEnglishScores(record.getEnglishScore());
-                studentToUpdate.setJavaScores(record.getJavaScore());
+                studentToUpdate.setName(nameField.getText());
+                studentToUpdate.setGender(genderComboBox.getValue());
+                studentToUpdate.setClassName(classNameField.getText());
+                studentToUpdate.setIdCardNumber(idNumberField.getText());
+                studentToUpdate.setChineseScores(Double.parseDouble(chineseScoreField.getText()));
+                studentToUpdate.setMathScores(Double.parseDouble(mathScoreField.getText()));
+                studentToUpdate.setEnglishScores(Double.parseDouble(englishScoreField.getText()));
+                studentToUpdate.setJavaScores(Double.parseDouble(javaScoreField.getText()));
 
                 // 更新数据库
                 try {
                     Students dbStudent = new Students(studentToUpdate);
                     Thread updateThread = databaseThreadFactory.createUpdateDatabaseThread(dbStudent);
                     updateThread.start();
-                    updateThread.join(); // 等待更新完成
+                    updateThread.join();
                     
-                    // 更新成功后刷新表格显示
-                    tableView.refresh();
                     showAlert("成功", "学生信息更新成功", Alert.AlertType.INFORMATION);
-                    submitButton.setDisable(true);
+                    clearForm();
                 } catch (Exception e) {
                     showAlert("错误", "数据库更新失败: " + e.getMessage(), Alert.AlertType.ERROR);
                 }
@@ -392,74 +290,80 @@ public class StudentDataUpdata implements StudentDataGetter {
         }
     }
 
-    /**
-     * 验证学生记录
-     * 检查学生信息的各个字段是否符合要求：
-     * - 姓名：非空且长度不超过20字符
-     * - 性别：必须是"男"或"女"
-     * - 班级：非空且长度不超过20字符
-     * - 身份证号：必须是18位
-     * - 所有成绩：必须在0-100之间
-     * @param record 要验证的学生记录
-     * @return boolean 验证是否通过
-     */
-    private boolean validateRecord(StudentDataService.StudentRecord record) {
-        StringBuilder errorMessage = new StringBuilder();
-
-        // 验证姓名（非空且长度不超过20）
-        if (record.getName() == null || record.getName().trim().isEmpty() ||
-                record.getName().length() > 20) {
-            errorMessage.append("姓名不能为空且长度不能超过20个字符\n");
+    private void deleteStudent() {
+        String studentId = studentIdField.getText().trim();
+        if (studentId.isEmpty()) {
+            showAlert("错误", "请先查找要删除的学生", Alert.AlertType.ERROR);
+            return;
         }
 
-        // 验证性别（男或女）
-        if (!"男".equals(record.getGender()) && !"女".equals(record.getGender())) {
-            errorMessage.append("性别只能是'男'或'女'\n");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("确认删除");
+        alert.setHeaderText("是否确认删除该学生？");
+        alert.setContentText("此操作不可撤销！");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                // 先从数据库中删除
+                Thread deleteThread = databaseThreadFactory.createDeleteDatabaseThread(studentId);
+                deleteThread.start();
+                deleteThread.join();
+
+                // 从内存列表中删除
+                studentsList.removeIf(s -> s.getStudentId().equals(studentId));
+                
+                showAlert("成功", "学生删除成功", Alert.AlertType.INFORMATION);
+                clearForm();
+            } catch (Exception e) {
+                showAlert("错误", "删除失败: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
+        }
+    }
+
+    private boolean validateForm() {
+        // 验证姓名
+        if (nameField.getText().trim().isEmpty()) {
+            showAlert("错误", "姓名不能为空", Alert.AlertType.ERROR);
+            return false;
         }
 
-        // 验证班级（非空且长度不超过20）
-        if (record.getClassName() == null || record.getClassName().trim().isEmpty() ||
-                record.getClassName().length() > 20) {
-            errorMessage.append("班级不能为空且长度不能超过20个字符\n");
+        // 验证性别
+        if (genderComboBox.getValue() == null) {
+            showAlert("错误", "请选择性别", Alert.AlertType.ERROR);
+            return false;
         }
 
-        // 验证身份证号（18位）
-        if (!record.getIdNumber().matches("[0-9X]{18}")) {
-            errorMessage.append("身份证号必须是18位\n");
+        // 验证班级
+        if (classNameField.getText().trim().isEmpty()) {
+            showAlert("错误", "班级不能为空", Alert.AlertType.ERROR);
+            return false;
         }
 
-        // 验证成绩（0-100）
-        if (record.getChineseScore() < 0 || record.getChineseScore() > 100) {
-            errorMessage.append("语文成绩必须在0-100之间\n");
-        }
-        if (record.getMathScore() < 0 || record.getMathScore() > 100) {
-            errorMessage.append("数学成绩必须在0-100之间\n");
-        }
-        if (record.getEnglishScore() < 0 || record.getEnglishScore() > 100) {
-            errorMessage.append("英语成绩必须在0-100之间\n");
-        }
-        if (record.getJavaScore() < 0 || record.getJavaScore() > 100) {
-            errorMessage.append("Java成绩必须在0-100之间\n");
+        // 验证身份证号
+        if (idNumberField.getText().trim().length() != 18) {
+            showAlert("错误", "身份证号必须为18位", Alert.AlertType.ERROR);
+            return false;
         }
 
-        if (errorMessage.length() > 0) {
-            showAlert("验证错误", errorMessage.toString(), Alert.AlertType.ERROR);
+        // 验证成绩
+        try {
+            double chinese = Double.parseDouble(chineseScoreField.getText());
+            double math = Double.parseDouble(mathScoreField.getText());
+            double english = Double.parseDouble(englishScoreField.getText());
+            double java = Double.parseDouble(javaScoreField.getText());
+
+            if (chinese < 0 || chinese > 100 || math < 0 || math > 100 ||
+                english < 0 || english > 100 || java < 0 || java > 100) {
+                showAlert("错误", "成绩必须在0-100之间", Alert.AlertType.ERROR);
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            showAlert("错误", "成绩必须为数字", Alert.AlertType.ERROR);
             return false;
         }
 
         return true;
-    }
-
-    /**
-     * 清空表格
-     * 清除表格中的所有数据，重置搜索框
-     * 并禁用提交按钮
-     */
-    private void clearTable() {
-        tableView.getItems().clear();
-        studentIdField.clear();
-        submitButton.setDisable(true);
-        deleteButton.setDisable(true);
     }
 
     /**
