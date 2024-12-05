@@ -275,17 +275,21 @@ public class StudentDataUpdata implements StudentDataGetter {
                 studentToUpdate.setJavaScores(Double.parseDouble(javaScoreField.getText()));
 
                 // 更新数据库
-                try {
-                    Students dbStudent = new Students(studentToUpdate);
-                    Thread updateThread = databaseThreadFactory.createUpdateDatabaseThread(dbStudent);
-                    updateThread.start();
-                    updateThread.join();
-                    
-                    showAlert("成功", "学生信息更新成功", Alert.AlertType.INFORMATION);
-                    clearForm();
-                } catch (Exception e) {
-                    showAlert("错误", "数据库更新失败: " + e.getMessage(), Alert.AlertType.ERROR);
+                //锁住数据库
+                synchronized (this){
+                    try {
+                        Students dbStudent = new Students(studentToUpdate);
+                        Thread updateThread = databaseThreadFactory.createUpdateDatabaseThread(dbStudent);
+                        updateThread.start();
+                        updateThread.join();
+
+                        showAlert("成功", "学生信息更新成功", Alert.AlertType.INFORMATION);
+                        clearForm();
+                    } catch (Exception e) {
+                        showAlert("错误", "数据库更新失败: " + e.getMessage(), Alert.AlertType.ERROR);
+                    }
                 }
+
             }
         }
     }
